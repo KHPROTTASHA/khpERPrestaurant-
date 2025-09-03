@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GourmetERP - Premium</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+--primary:#2c3e50;--secondary:#c9902c;--light:#f5f7fa;--dark:#1e272e;--gray:#95a5a6;
+}
+[data-theme="dark"]{
+--light:#0f172a;--dark:#f5f7fa;--primary:#111827;--secondary:#fbbf24;--gray:#9ca3af;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+body{background:var(--light);color:var(--dark);transition:0.3s;display:flex;min-height:100vh;flex-direction:column;}
+@media(min-width:900px){body{flex-direction:row;}}
+
+/* Sidebar */
+.sidebar{width:220px;background:var(--primary);color:white;padding:20px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
+.logo{text-align:center;margin-bottom:20px;}
+.logo h1{color:white;font-size:24px;}
+.menu-item{padding:12px 20px;display:flex;align-items:center;color:#ddd;cursor:pointer;font-weight:500;transition:all 0.2s;}
+.menu-item i{width:20px;margin-right:12px;text-align:center;}
+.menu-item:hover{background:rgba(255,255,255,0.1);border-left:4px solid var(--secondary);}
+.menu-item.active{background:rgba(255,255,255,0.15);border-left:4px solid var(--secondary);}
+
+/* Main container */
+.main-container{flex:1;display:flex;flex-direction:column;padding:10px;gap:10px;}
+
+/* Navbar */
+.navbar{display:flex;justify-content:space-between;align-items:center;background:var(--primary);color:white;padding:10px 15px;border-radius:10px;flex-wrap:wrap;gap:10px;}
+.navbar .logo h1{color:var(--secondary);font-size:20px;margin:0;}
+.navbar .search-bar{flex:1;display:flex;align-items:center;background:#fff;color: var(--dark);border-radius:25px;padding:5px 15px;max-width:340px;}
+[data-theme="dark"] .navbar .search-bar{background:#374151;color:white;}
+.navbar .search-bar input{border:none;background:transparent;outline:none;width:100%;padding:5px;color:inherit;}
+.navbar .user-actions{display:flex;align-items:center;gap:10px;}
+.navbar .user-actions img{width:36px;height:36px;border-radius:50%;cursor:pointer;}
+.navbar button{background:none;border:none;color:white;font-size:18px;cursor:pointer;}
+
+/* Filters */
+.filters{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap;}
+.filters button{padding:6px 12px;border:none;border-radius:6px;background:var(--primary);color:white;cursor:pointer;transition:0.2s;}
+.filters button.active{background:var(--secondary);}
+.filters button:hover{opacity:0.9;}
+
+/* Content wrap */
+.content-wrap{display:flex;flex-wrap:wrap;gap:20px;}
+
+/* Menu Grid */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;flex:3;min-width:300px;}
+.menu-card{background:white;border-radius:15px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,0.08);transition:transform 0.25s;}
+[data-theme="dark"] .menu-card{background:#1f2937;color:white;}
+.menu-card:hover{transform:translateY(-5px);}
+.menu-card img{width:100%;height:160px;object-fit:cover;}
+.menu-card-content{padding:15px;display:flex;flex-direction:column;gap:6px;}
+.menu-card-content h3{margin:0;color:var(--primary);}
+[data-theme="dark"] .menu-card-content h3{color:white;}
+.menu-card-content p{font-size:14px;color:var(--gray);}
+[data-theme="dark"] .menu-card-content p{color:#cbd5e1;}
+.menu-card-content .price{font-weight:bold;color:var(--secondary);}
+.menu-card-content button{padding:6px 10px;border:none;border-radius:8px;background:var(--secondary);color:white;cursor:pointer;transition:0.2s;}
+.menu-card-content button:hover{background:var(--primary);}
+
+/* Cart */
+.cart{background:#f0f0f0;border-radius:10px;padding:15px;max-width:400px;min-width:280px;margin-top:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+[data-theme="dark"] .cart{background:#1f2937;color:white;}
+.cart h3{margin-bottom:10px;font-size:18px;}
+.cart small{color:var(--gray);}
+.cart-table{width:100%;border-collapse:collapse;display:block;overflow-x:auto;white-space:nowrap;}
+.cart-table th, .cart-table td{padding:8px 10px;text-align:center;font-size:14px;}
+.cart-table th{background:var(--primary);color:white;}
+.cart-table tr:nth-child(even){background:rgba(0,0,0,0.03);}
+[data-theme="dark"] .cart-table tr:nth-child(even){background:rgba(255,255,255,0.05);}
+.cart-table input{width:52px;text-align:center;border:1px solid #ccc;border-radius:4px;padding:3px;}
+.cart-table button{background:#e74c3c;color:white;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;}
+.cart-table button:hover{opacity:0.9;}
+.cart-total{margin-top:12px;font-weight:bold;font-size:16px;text-align:right;color:var(--secondary);}
+.cart-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
+.cart-actions button{background:var(--primary);color:white;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;}
+.cart-actions button.place-order{background:var(--secondary);color:#111;}
+
+/* Sections */
+.section{display:none;}
+.section.active{display:block;}
+
+/* Chef cards */
+.order-card{background:white;border-radius:12px;padding:12px;margin:10px 0;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+[data-theme="dark"] .order-card{background:#1f2937;color:white;}
+.order-card h4{margin-bottom:6px;color:var(--primary);}
+.order-actions{display:flex;gap:8px;margin-top:8px;}
+.order-actions .ok{background:#10b981;color:white;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;}
+.order-actions .no{background:#ef4444;color:white;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;}
+
+/* Dashboard */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0;}
+.kpi{background:white;border-radius:12px;padding:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+[data-theme="dark"] .kpi{background:#1f2937;color:white;}
+.kpi h5{color:var(--gray);font-weight:600;margin-bottom:6px;}
+.kpi .val{font-size:20px;font-weight:700;color:var(--secondary);}
+.table{width:100%;border-collapse:collapse;margin-top:10px;}
+.table th,.table td{border:1px solid #e5e7eb;padding:8px;text-align:center;}
+.table th{background:var(--primary);color:#fff;}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.row input, .row select{padding:6px 8px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#111;}
+[data-theme="dark"] .row input,[data-theme="dark"] .row select{background:#111827;color:#fff;border-color:#374151;}
+.row button{padding:7px 10px;border:none;border-radius:8px;background:var(--secondary);color:#111;font-weight:600;}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:16px;}
+.modal .box{background:white;padding:20px;border-radius:12px;max-width:400px;width:100%;position:relative;}
+[data-theme="dark"] .modal .box{background:#1f2937;color:white;}
+.modal h3{margin-bottom:10px;}
+.modal button.close{position:absolute;top:10px;right:10px;background:none;border:none;font-size:20px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<div class="logo"><h1>G<span style="color:var(--secondary)">ERP</span></h1></div>
+<div class="menu-item active" data-section="menu"><i class="fas fa-utensils"></i> Menu</div>
+<div class="menu-item" data-section="chef"><i class="fas fa-hat-chef"></i> Cooking</div>
+<div class="menu-item" data-section="dashboard"><i class="fas fa-chart-line"></i> Dashboard</div>
+</div>
+
+<div class="main-container">
+<div class="navbar">
+<div class="logo"><h1>Gourmet</h1></div>
+<div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Search orders..." id="searchOrders"></div>
+<div class="user-actions">
+<button id="themeToggle">🌙</button>
+<i class="fas fa-bell" style="position:relative;"><span id="notifBadge" style="position:absolute;top:-5px;right:-8px;background:#e74c3c;color:white;font-size:12px;padding:2px 5px;border-radius:50%;"></span></i>
+<img src="https://randomuser.me/api/portraits/men/41.jpg">
+</div>
+</div>
+
+<!-- Menu Section -->
+<div class="section active" id="menuSection">
+<div class="content-wrap">
+<div class="menu-grid" id="menuGrid"></div>
+<div class="cart" id="cartWrap">
+<h3>Cart</h3>
+<table class="cart-table" id="cartTable">
+<thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Action</th></tr></thead>
+<tbody></tbody>
+</table>
+<div class="cart-total" id="cartTotal">Total: $0</div>
+<div class="cart-actions">
+<input type="text" id="customerName" placeholder="Customer Name">
+<button class="place-order" onclick="placeOrder()">Place Order</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Chef Section -->
+<div class="section" id="chefSection">
+<h3>Cooking / Pending Orders</h3>
+<div id="chefOrders"></div>
+</div>
+
+<!-- Dashboard Section -->
+<div class="section" id="dashboardSection">
+<div class="kpis">
+<div class="kpi"><h5>Total Customers</h5><div class="val" id="totalCustomers">0</div></div>
+<div class="kpi"><h5>Total Revenue</h5><div class="val" id="totalRevenue">$0</div></div>
+<div class="kpi"><h5>Total Profit</h5><div class="val" id="totalProfit">$0</div></div>
+<div class="kpi"><h5>Items Sold</h5><div class="val" id="itemsSold">0</div></div>
+</div>
+<div class="row"><input type="date" id="fromDate"> <input type="date" id="toDate"> <button onclick="filterDashboard()">Filter</button> <button onclick="resetDashboard()">Reset</button></div>
+<table class="table">
+<thead><tr><th>Booking ID</th><th>Customer</th><th>Date</th><th>Bill</th><th>Action</th></tr></thead>
+<tbody id="dashboardTable"></tbody>
+</table>
+</div>
+
+<!-- Booking Detail Modal -->
+<div class="modal" id="bookingModal">
+<div class="box">
+<button class="close" onclick="closeModal()">×</button>
+<h3>Booking Details</h3>
+<div id="modalContent"></div>
+<button onclick="generatePDF()">Generate PDF</button>
+</div>
+</div>
+
+<script>
+// Sample Menu Data
+let menuItems=[
+{id:'m1',name:'Burger',price:5,img:'https://picsum.photos/300/160?1'},
+{id:'m2',name:'Pizza',price:8,img:'https://picsum.photos/300/160?2'},
+{id:'m3',name:'Pasta',price:6,img:'https://picsum.photos/300/160?3'},
+{id:'m4',name:'Coke',price:2,img:'https://picsum.photos/300/160?4'}
+];
+
+// LocalStorage Orders
+let bookings = JSON.parse(localStorage.getItem('gERP_bookings')||'[]');
+
+// Render Menu
+function renderMenu(){
+  const grid = document.getElementById('menuGrid');
+  grid.innerHTML='';
+  menuItems.forEach(m=>{
+    const card=document.createElement('div');
+    card.className='menu-card';
+    card.innerHTML=`<img src="${m.img}"><div class="menu-card-content"><h3>${m.name}</h3><p class="price">$${m.price}</p><button onclick="addToCart('${m.id}')">Add to Cart</button></div>`;
+    grid.appendChild(card);
+  });
+}
+renderMenu();
+
+// Cart
+let cart=[];
+function addToCart(id){
+  const item = menuItems.find(i=>i.id===id);
+  const cartItem = cart.find(c=>c.id===id);
+  if(cartItem) cartItem.qty++;
+  else cart.push({id:item.id,name:item.name,price:item.price,qty:1});
+  renderCart();
+}
+
+function renderCart(){
+  const tbody = document.querySelector('#cartTable tbody');
+  tbody.innerHTML='';
+  let total=0;
+  cart.forEach(c=>{
+    total+=c.qty*c.price;
+    const row=tbody.insertRow();
+    row.insertCell(0).innerText=c.name;
+    row.insertCell(1).innerHTML=`<input type="number" value="${c.qty}" min="1" onchange="updateQty('${c.id}',this.value)">`;
+    row.insertCell(2).innerText='$'+(c.price*c.qty);
+    row.insertCell(3).innerHTML=`<button onclick="removeCart('${c.id}')">❌</button>`;
+  });
+  document.getElementById('cartTotal').innerText='Total: $'+total;
+}
+
+function updateQty(id,val){cart.find(c=>c.id===id).qty=parseInt(val);renderCart();}
+function removeCart(id){cart=cart.filter(c=>c.id!==id);renderCart();}
+
+// Place Order
+function placeOrder(){
+  const customer=document.getElementById('customerName').value.trim();
+  if(!customer || cart.length===0){alert('Add items and customer name!'); return;}
+  const booking={id:'B'+Date.now(),customer,items:[...cart],date:new Date().toISOString().split('T')[0],status:'Pending'};
+  bookings.push(booking); saveBookings();
+  cart=[]; renderCart(); document.getElementById('customerName').value='';
+  alert('Booking placed! Check Cooking Section');
+  renderChef(); updateNotif();
+}
+
+// Save Bookings
+function saveBookings(){ localStorage.setItem('gERP_bookings',JSON.stringify(bookings));}
+
+// Chef
+function renderChef(){
+  const chefDiv=document.getElementById('chefOrders'); chefDiv.innerHTML='';
+  bookings.filter(b=>b.status==='Pending').forEach(b=>{
+    const card=document.createElement('div'); card.className='order-card';
+    card.innerHTML=`<h4>${b.customer} - ${b.date}</h4><p>Items: ${b.items.map(i=>i.name+' x'+i.qty).join(', ')}</p>
+    <div class="order-actions">
+    <button class="ok" onclick="confirmBooking('${b.id}')">✅ Confirm</button>
+    <button class="no" onclick="cancelBooking('${b.id}')">❌ Cancel</button>
+    </div>`;
+    chefDiv.appendChild(card);
+  });
+}
+
+// Confirm & Cancel
+function confirmBooking(id){ bookings.find(b=>b.id===id).status='Confirmed'; saveBookings(); renderChef(); renderDashboard(); updateNotif();}
+function cancelBooking(id){ bookings.find(b=>b.id===id).status='Cancelled'; saveBookings(); renderChef(); updateNotif(); alert('Product not available!');}
+
+// Notifications
+function updateNotif(){
+  const pending=bookings.filter(b=>b.status==='Pending').length;
+  document.getElementById('notifBadge').innerText=pending>0?pending:'';
+}
+
+// Dashboard
+function renderDashboard(filtered){
+  const data=filtered||bookings.filter(b=>b.status==='Confirmed');
+  const tbody=document.getElementById('dashboardTable'); tbody.innerHTML='';
+  data.forEach(b=>{
+    const row=tbody.insertRow();
+    row.insertCell(0).innerHTML=`<a href="#" onclick="viewBooking('${b.id}')">${b.id}</a>`;
+    row.insertCell(1).innerText=b.customer;
+    row.insertCell(2).innerText=b.date;
+    const total = b.items.reduce((s,i)=>s+i.qty*i.price,0);
+    row.insertCell(3).innerText='$'+total;
+    row.insertCell(4).innerHTML=`<button onclick="viewBooking('${b.id}')">View / Bill</button>`;
+  });
+  updateStats(data);
+}
+
+function updateStats(data){
+  const customers=data.length;
+  const revenue=data.reduce((s,b)=>s+b.items.reduce((s,i)=>s+i.qty*i.price,0),0);
+  const profit=Math.floor(revenue*0.7);
+  const itemsSold=data.reduce((s,b)=>s+b.items.reduce((s,i)=>s+i.qty,0),0);
+  document.getElementById('totalCustomers').innerText=customers;
+  document.getElementById('totalRevenue').innerText='$'+revenue;
+  document.getElementById('totalProfit').innerText='$'+profit;
+  document.getElementById('itemsSold').innerText=itemsSold;
+}
+
+// Booking Modal
+let selectedBooking=null;
+function viewBooking(id){
+  selectedBooking=bookings.find(b=>b.id===id);
+  const modal=document.getElementById('bookingModal');
+  const content=document.getElementById('modalContent'); content.innerHTML='';
+  selectedBooking.items.forEach(i=>{
+    const p=document.createElement('p'); p.innerText=`${i.name} x${i.qty} - $${i.qty*i.price}`; content.appendChild(p);
+  });
+  modal.style.display='flex';
+}
+
+function closeModal(){document.getElementById('bookingModal').style.display='none';}
+
+// Generate PDF
+function generatePDF(){
+  if(!selectedBooking) return;
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16); doc.text('Invoice',20,20);
+  doc.setFontSize(12); doc.text('Booking ID: '+selectedBooking.id,20,30);
+  doc.text('Customer: '+selectedBooking.customer,20,38);
+  doc.text('Date: '+selectedBooking.date,20,46);
+  let y=55; let total=0;
+  selectedBooking.items.forEach(i=>{
+    doc.text(`${i.name} x${i.qty} - $${i.price*i.qty}`,20,y); y+=8; total+=i.price*i.qty;
+  });
+  doc.text('Total: $'+total,20,y+5);
+  doc.save(`Invoice_${selectedBooking.id}.pdf`);
+  closeModal(); renderDashboard();
+}
+
+// Section Navigation
+document.querySelectorAll('.menu-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    const section=item.dataset.section;
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    if(section==='menu') document.getElementById('menuSection').classList.add('active');
+    if(section==='chef') renderChef(),document.getElementById('chefSection').classList.add('active');
+    if(section==='dashboard') renderDashboard(),document.getElementById('dashboardSection').classList.add('active');
+  });
+});
+
+// Theme
+document.getElementById('themeToggle').addEventListener('click',()=>{
+  if(document.documentElement.getAttribute('data-theme')==='dark') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme','dark');
+});
+
+// Search Orders
+document.getElementById('searchOrders').addEventListener('input', function(){
+  const q=this.value.toLowerCase();
+  const filtered=bookings.filter(b=>b.customer.toLowerCase().includes(q));
+  renderDashboard(filtered);
+});
+
+// Date Filter Dashboard
+function filterDashboard(){
+  const from=document.getElementById('fromDate').value;
+  const to=document.getElementById('toDate').value;
+  if(!from || !to) return;
+  const filtered=bookings.filter(b=>b.status==='Confirmed' && b.date>=from && b.date<=to);
+  renderDashboard(filtered);
+}
+function resetDashboard(){
+  document.getElementById('fromDate').value=''; document.getElementById('toDate').value='';
+  renderDashboard();
+}
+
+// Initial Render
+renderChef(); renderDashboard(); updateNotif();
+</script>
+</body>
+</html>

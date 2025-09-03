@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GourmetERP - Login</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+    --primary:#2c3e50;
+    --secondary:#c9902c;
+    --light:#f5f7fa;
+    --dark:#1e272e;
+    --success:#27ae60;
+    --danger:#e74c3c;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+body{display:flex;justify-content:center;align-items:center;height:100vh;background:linear-gradient(135deg,#2c3e50,#c9902c);transition:0.3s;}
+.login-container{background:white;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.2);width:350px;max-width:90%;padding:30px;display:flex;flex-direction:column;gap:20px;}
+.login-container h2{text-align:center;color:var(--primary);}
+.login-container .input-group{display:flex;flex-direction:column;}
+.login-container .input-group label{margin-bottom:5px;color:var(--dark);font-weight:500;}
+.login-container .input-group input{padding:10px;border:1px solid #ccc;border-radius:8px;outline:none;transition:0.3s;}
+.login-container .input-group input:focus{border-color:var(--secondary);box-shadow:0 0 5px rgba(201,144,44,0.5);}
+.login-container button{padding:10px;background:var(--secondary);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:0.3s;}
+.login-container button:hover{background:#b87f1f;transform:translateY(-2px);}
+.login-container .error{color:var(--danger);font-size:14px;text-align:center;display:none;}
+.login-container .logo{text-align:center;margin-bottom:10px;}
+.login-container .logo h1{color:var(--primary);font-size:32px;}
+</style>
+</head>
+<body>
+<div class="login-container">
+    <div class="logo"><h1>G<span style="color:var(--secondary)">ERP</span></h1></div>
+    <h2>Login to your account</h2>
+    <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter Username">
+    </div>
+    <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter Password">
+    </div>
+    <button onclick="login()">Login</button>
+    <div class="error" id="errorMsg">Invalid credentials</div>
+</div>
+
+<script>
+function login(){
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const error = document.getElementById('errorMsg');
+
+    // Valid credentials
+    const validUser = "admin";
+    const validPass = "admin123";
+
+    if(user === validUser && pass === validPass){
+        // Save session
+        localStorage.setItem('gERP_loggedIn', 'true');
+        window.location.href = "menu.html";
+    } else{
+        error.style.display = "block";
+    }
+}
+
+// Check session
+if(localStorage.getItem('gERP_loggedIn')==='true'){
+    window.location.href='menu.html';
+}
+</script>
+</body>
+</html>
